@@ -11,7 +11,6 @@ def create_dataloaders(config):
     loader_kwargs = dict(
         num_workers = config.num_workers,
         pin_memory  = config.pin_memory,
-        drop_last   = False,
     )
 
     # persistent_workers + prefetch_factor need num_workers > 0

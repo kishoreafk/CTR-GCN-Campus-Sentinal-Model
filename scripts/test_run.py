@@ -13,9 +13,9 @@ def run_smoke_test(args):
     preflight(required_disk_gb=5.0)
 
     # Synthetic data generation if no real data present
+    classes = getattr(args, 'classes', None) or ["eat", "drink", "walk"]
     if not list(Path("data/processed").rglob("*.npz")):
         log.info("Generating synthetic skeleton data for smoke test...")
-        classes = getattr(args, 'classes', ["eat", "drink", "walk"])
         _generate_synthetic_data(classes, n_per_class=20)
 
     from utils.config_loader import load_config

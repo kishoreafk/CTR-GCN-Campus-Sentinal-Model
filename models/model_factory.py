@@ -9,23 +9,30 @@ log = logging.getLogger("model_factory")
 def build_model(config) -> CTRGCNForAVA:
     pretrained_sd = None
     if config.pretrained_ckpt and config.pretrained_ckpt != "auto":
-        ckpt = torch.load(config.pretrained_ckpt, map_location="cpu",
-                          weights_only=False)
-        pretrained_sd = ckpt.get("state_dict",
-                        ckpt.get("model_state_dict", ckpt))
+        from pathlib import Path
+        ckpt_path = Path(config.pretrained_ckpt)
+        if not ckpt_path.exists():
+            log.warning(f"Pretrained checkpoint not found: {ckpt_path}. "
+                        f"Building model from scratch.")
+        else:
+            ckpt = torch.load(config.pretrained_ckpt, map_location="cpu",
+                              weights_only=False)
+            pretrained_sd = ckpt.get("state_dict",
+                            ckpt.get("model_state_dict", ckpt))
 
         # Detect stored num_classes; rebuild head if mismatch
-        for k, v in pretrained_sd.items():
-            if "head" in k and "weight" in k and v.ndim == 2:
-                stored_classes = v.shape[0]
-                if stored_classes != config.num_classes:
-                    log.warning(
-                        f"num_classes mismatch: checkpoint={stored_classes}, "
-                        f"config={config.num_classes}. Head will be re-initialised.")
-                    # Drop head weights; backbone weights will still load
-                    pretrained_sd = {k: v for k, v in pretrained_sd.items()
-                                     if "head" not in k}
-                break
+        if pretrained_sd is not None:
+            for k, v in pretrained_sd.items():
+                if "head" in k and "weight" in k and v.ndim == 2:
+                    stored_classes = v.shape[0]
+                    if stored_classes != config.num_classes:
+                        log.warning(
+                            f"num_classes mismatch: checkpoint={stored_classes}, "
+                            f"config={config.num_classes}. Head will be re-initialised.")
+                        # Drop head weights; backbone weights will still load
+                        pretrained_sd = {k: v for k, v in pretrained_sd.items()
+                                         if "head" not in k}
+                    break
 
     model = CTRGCNForAVA(
         num_classes         = config.num_classes,
