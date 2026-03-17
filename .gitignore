@@ -1,11 +1,109 @@
+# Python
 __pycache__/
-*.pyc
-*.pyo
-.pytest_cache/
-*.egg-info/
-dist/
+*.py[cod]
+*$py.class
+*.so
+.Python
 build/
+develop-eggs/
+dist/
+downloads/
+eggs/
 .eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+campus/
+venv/
+env/
+.venv
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Testing
+.pytest_cache/
+.tox/
+.nox/
+.coverage
+htmlcov/
+.hypothesis/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Project specific
+data/
+raw_data/
+processed_data/
 checkpoints/
+logs/
+runs/
+output/
+outputs/
+results/
+*.ckpt
+*.pth
+*.pt
+*.h5
+*.hdf5
+*.npy
+*.npz
+*.pkl
+*.pickle
+*.joblib
+
+# Temporary files
 *.tmp
-.kilocode/
+*.temp
+*.log
+*.bak
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Configuration local overrides
+configs/local/
+configs/experiments/
+!configs/**
+
+# Downloaded datasets
+# Uncomment if you want to exclude specific datasets
+# ava/
+# kinetics/
+# *.tar
+# *.zip
+
+# Misc
+.cache/
+.mypy_cache/
+.pyre/
+.pytype/
+.ropeproject/
+.scannerwork/
+.spyderproject/
+.spyproject/
+.webassets-cache

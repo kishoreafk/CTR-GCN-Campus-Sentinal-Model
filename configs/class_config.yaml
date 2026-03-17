@@ -1,0 +1,20 @@
+# AVA is MULTI-LABEL — a person can have several simultaneous actions.
+# Select a subset of the 80 AVA classes for this project.
+target_classes:
+  - {id: 5,  name: "dance",             category: "movement"}
+  - {id: 11, name: "run/jog",           category: "movement"}
+  - {id: 14, name: "walk",              category: "movement"}
+  - {id: 17, name: "eat",               category: "object"}
+  - {id: 20, name: "drink",             category: "object"}
+  - {id: 49, name: "hand shake",        category: "interaction"}
+  - {id: 50, name: "hug (a person)",    category: "interaction"}
+  - {id: 52, name: "kick (a person)",   category: "interaction"}
+  - {id: 63, name: "punch/slap",        category: "interaction"}
+  - {id: 74, name: "push (a person)",   category: "interaction"}
+  - {id: 1,  name: "bend/bow",          category: "pose"}
+  - {id: 4,  name: "crouch/kneel",      category: "pose"}
+  - {id: 41, name: "ride (bike/horse)", category: "object"}
+  - {id: 68, name: "smoke",             category: "object"}
+  - {id: 80, name: "use a computer",    category: "object"}
+
+test_mode_classes: ["eat", "drink", "walk"]

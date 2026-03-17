@@ -1,0 +1,47 @@
+project:
+  name: "ctrgcn_ava"
+  seed: 42
+
+hardware:
+  device: "cuda:0"
+  precision: "bf16"          # BF16 for Ada Lovelace — no GradScaler needed
+  use_compile: true
+  compile_mode: "reduce-overhead"
+  cudnn_benchmark: true
+  num_workers: 8
+  pin_memory: true
+  prefetch_factor: 3
+
+skeleton:
+  joint_layout: "openpose_18"  # Must match Kinetics-400 pretrained weights
+  num_joints: 18
+  num_frames: 64
+  max_persons: 2
+  in_channels: 3               # (x, y, confidence)
+  graph_strategy: "spatial"    # 3 adjacency subsets
+
+annotation:
+  # RTMDet+RTMPose: 4x faster than Faster-RCNN+HRNet, same accuracy
+  detector: "rtmdet-m"
+  pose_model: "rtmpose-l"
+  detector_ckpt: "checkpoints/pretrained/rtmdet-m_coco-person.pth"
+  pose_ckpt: "checkpoints/pretrained/rtmpose-l_coco.pth"
+  detector_score_thr: 0.4
+  pose_score_thr: 0.3
+  det_batch_size: 16
+  pose_batch_size: 32
+  # AVA: use ground-truth boxes directly — skip running detector
+  # AVA-Kinetics: run detector (no GT boxes in annotation CSV)
+  use_gt_boxes_for_ava: true
+  # Person tracking across frames
+  tracker_iou_threshold: 0.4
+  tracker_max_age: 5
+
+paths:
+  data_dir: "data"
+  checkpoint_dir: "checkpoints"
+  log_dir: "logs"
+  output_dir: "outputs"
+  state_db: "data/state.db"
+  class_config: "configs/class_config.yaml"
+  joint_mappings: "configs/joint_mappings.yaml"

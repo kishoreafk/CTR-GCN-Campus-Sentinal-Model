@@ -1,0 +1,31 @@
+inherit: "configs/base_config.yaml"
+experiment_name: "phase2_ava"
+dataset: "ava"
+multi_label: true
+loss_type: "asymmetric"
+
+# "auto" = load best.pth from Phase 1.
+# Head is rebuilt when num_classes differs (see model_factory.py).
+pretrained_ckpt: "auto"
+
+epochs: 30
+batch_size: 64
+lr_backbone: 5.0e-5
+lr_head: 5.0e-4
+weight_decay: 1.0e-4
+scheduler: "one_cycle"
+warmup_epochs: 3
+dropout: 0.1
+use_ema: true
+ema_decay: 0.999
+gradient_clip: 1.0
+gradient_accumulation: 1
+
+early_stopping: true
+early_stopping_patience: 10
+early_stopping_metric: "val_mAP"
+early_stopping_mode: "max"
+
+save_every_n_epochs: 3
+keep_last_k_checkpoints: 3
+auto_resume: true

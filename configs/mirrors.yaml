@@ -1,0 +1,9 @@
+# Mirror URLs for pretrained models (fallback sources)
+ctrgcn_url:
+  - "https://github.com/Uason-Chen/CTR-GCN/releases/download/v1.0/kinetics_joint.pt"
+
+rtmdet_url:
+  - "https://download.openmmlab.com/mmdetection/v3.0/rtmdet/rtmdet_m_8xb32-300e_coco/rtmdet_m_8xb32-300e_coco_20220719_112220-229f527c.pth"
+
+rtmpose_url:
+  - "https://download.openmmlab.com/mmpose/v1/projects/rtmposev1/rtmpose-l_simcc-coco-wholebody_pt-ubs1k_270e-256x192-6f206314_20230124.pth"

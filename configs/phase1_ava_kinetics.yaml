@@ -1,0 +1,41 @@
+inherit: "configs/base_config.yaml"
+experiment_name: "phase1_ava_kinetics"
+dataset: "ava_kinetics"
+
+# ── CRITICAL: AVA-Kinetics is ALSO multi-label ──────────────────────────────
+# The same annotation format as AVA — multiple action_ids per person per frame.
+multi_label: true
+loss_type: "asymmetric"
+
+pretrained_ckpt: "checkpoints/pretrained/ctrgcn_kinetics400.pt"
+epochs: 50
+batch_size: 64
+lr_backbone: 1.0e-4
+lr_head: 1.0e-3
+weight_decay: 1.0e-4
+scheduler: "cosine_warm_restarts"
+warmup_epochs: 5
+
+# Actual CTR-GCN module names — verified against architecture
+finetune_mode: "gradual"
+unfreeze_schedule:
+  0:  ["cls_head"]
+  10: ["cls_head", "st_gcn_networks.9", "st_gcn_networks.8"]
+  20: ["cls_head", "st_gcn_networks.9", "st_gcn_networks.8",
+       "st_gcn_networks.7", "st_gcn_networks.6", "st_gcn_networks.5"]
+  35: ["ALL"]
+
+dropout: 0.1
+use_ema: true
+ema_decay: 0.999
+gradient_clip: 1.0
+gradient_accumulation: 1
+
+early_stopping: true
+early_stopping_patience: 15
+early_stopping_metric: "val_mAP"
+early_stopping_mode: "max"
+
+save_every_n_epochs: 5
+keep_last_k_checkpoints: 3
+auto_resume: true
