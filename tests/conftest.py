@@ -35,3 +35,21 @@ def dummy_npz(tmp_path):
         split        = "train",
     )
     return str(p)
+
+@pytest.fixture
+def class_registry_3():
+    """A 3-class subset registry for testing class selection."""
+    from utils.class_registry import ClassRegistry
+    classes = [
+        {"id": 17, "name": "eat", "category": "object"},
+        {"id": 49, "name": "walk", "category": "movement"},
+        {"id": 74, "name": "talk to (e.g., self, a person, a group)",
+         "category": "interaction"},
+    ]
+    return ClassRegistry.from_class_list(classes)
+
+@pytest.fixture
+def class_registry_full():
+    """Full registry loaded from class_config.yaml."""
+    from utils.class_registry import ClassRegistry
+    return ClassRegistry()

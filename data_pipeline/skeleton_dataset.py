@@ -26,12 +26,29 @@ class SkeletonDataset(Dataset):
         paths = sorted(Path(annotation_dir).rglob("*.npz"))
         samples = []
         for p in paths:
-            d = np.load(p, allow_pickle=True)
+            try:
+                d = np.load(p, allow_pickle=True)
+            except Exception:
+                continue
             if str(d.get("split", "train")) != split:
                 continue
             if float(d.get("quality_score", 1)) < min_quality:
                 continue
-            label = np.array(d["label"], dtype=np.float32)
+
+            # ── Class filter: rebuild label for selected class subset ──────
+            # Use action_ids from .npz if available; fall back to pre-computed label
+            action_ids = list(d.get("action_ids", []))
+            if action_ids:
+                # Filter to only selected classes
+                relevant = [a for a in action_ids
+                            if a in class_registry._id_to_idx]
+                if not relevant:
+                    continue  # no selected-class annotations in this sample
+                label = class_registry.get_multilabel_vector(relevant)
+            else:
+                # Legacy .npz without action_ids: use pre-computed label
+                label = np.array(d["label"], dtype=np.float32)
+
             if label.sum() == 0:
                 continue
             samples.append((str(p), label))

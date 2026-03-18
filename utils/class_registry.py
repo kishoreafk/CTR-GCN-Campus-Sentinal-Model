@@ -39,3 +39,35 @@ class ClassRegistry:
             if ava_id in self._id_to_idx:
                 vec[self._id_to_idx[ava_id]] = 1.0
         return vec
+
+    @classmethod
+    def from_class_list(cls, class_list: list) -> "ClassRegistry":
+        """
+        Create a ClassRegistry from an explicit list of class dicts.
+        Used by class_resolver to create subsets.
+
+        class_list: [{"id": int, "name": str, "category": str}, ...]
+        """
+        obj = cls.__new__(cls)
+        obj._classes = list(class_list)
+        obj._id_to_idx = {c["id"]: i for i, c in enumerate(obj._classes)}
+        obj._idx_to_id = {i: c["id"] for i, c in enumerate(obj._classes)}
+        return obj
+
+    def to_config_fragment(self) -> dict:
+        """
+        Returns a dict suitable for merging into TrainingConfig.
+        Used by apply_class_selection().
+        """
+        return {
+            "num_classes":        self.num_classes,
+            "target_class_ids":   self.class_ids,
+            "target_class_names": self.class_names,
+        }
+
+    def is_subset_compatible(self, other: "ClassRegistry") -> bool:
+        """
+        True if all classes in self are present in other.
+        Used to validate that a checkpoint covers the requested classes.
+        """
+        return all(cid in other._id_to_idx for cid in self.class_ids)

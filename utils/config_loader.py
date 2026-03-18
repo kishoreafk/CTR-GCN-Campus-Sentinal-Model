@@ -92,6 +92,21 @@ class TrainingConfig:
     test_max_videos: int = 10
     test_max_epochs: int = 3
 
+    # ── Class selection (populated by apply_class_selection) ─────────────
+    target_class_ids:   List[int] = field(default_factory=list)
+    target_class_names: List[str] = field(default_factory=list)
+
+    # ── Stage control ─────────────────────────────────────────────────────
+    start_from:      Optional[str] = None
+    skip_download:   bool = False
+    skip_annotate:   bool = False
+    skip_train:      bool = False
+
+    # ── Download settings ─────────────────────────────────────────────────
+    download_workers:     int = 4
+    yt_dlp_format:        str = "bestvideo[height<=720][ext=mp4]+bestaudio/best[height<=720]"
+    download_max_retries: int = 3
+
 
 def _deep_merge(base: dict, override: dict) -> dict:
     out = dict(base)
@@ -142,3 +157,20 @@ def validate_config(cfg: TrainingConfig) -> None:
         except ImportError:
             pass  # torch not installed yet
     log.info("Config validated OK")
+
+
+def apply_class_selection(config: TrainingConfig,
+                          selected) -> TrainingConfig:
+    """
+    Merge selected class information into config.
+    Called after class resolution, before any stage runs.
+
+    Parameters
+    ----------
+    config   : TrainingConfig
+    selected : ClassRegistry (or subset)
+    """
+    config.target_class_ids   = selected.class_ids
+    config.target_class_names = selected.class_names
+    config.num_classes        = selected.num_classes
+    return config

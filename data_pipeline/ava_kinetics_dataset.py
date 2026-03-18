@@ -10,8 +10,8 @@ from pathlib import Path
 class AVAKineticsDataset(SkeletonDataset):
     """Dataset for AVA-Kinetics skeleton data (Phase 1)."""
 
-    def __init__(self, config, split: str = "train"):
-        reg = ClassRegistry(config.class_config)
+    def __init__(self, config, split: str = "train", class_registry=None):
+        reg = class_registry or ClassRegistry(config.class_config)
         annotation_dir = str(
             Path(config.data_dir) / "processed" / "ava_kinetics" / "skeletons")
 

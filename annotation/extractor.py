@@ -123,5 +123,31 @@ class SkeletonExtractor:
         return 0.5 * mean_conf + 0.5 * frac_good
 
     def save_sample(self, sample: dict, output_path: str):
+        """
+        Write .npz atomically:
+          1. Write to output_path.tmp.npz
+          2. Validate the written file
+          3. Rename to output_path (atomic on POSIX)
+
+        If the process is killed between steps 1 and 3,
+        a .tmp.npz file is left behind — recovered at next startup.
+        """
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-        np.savez_compressed(output_path, **sample)
+        tmp_path = output_path + ".tmp.npz"
+        try:
+            np.savez_compressed(tmp_path, **sample)
+
+            # Validate before finalising
+            test = np.load(tmp_path, allow_pickle=True)
+            kpts = test["keypoints"]
+            expected = (self.T, self.M, self.V, 3)
+            assert kpts.shape == expected, \
+                f"Bad keypoints shape: {kpts.shape}, expected {expected}"
+            assert not np.any(np.isnan(kpts)), "NaN in keypoints"
+
+            # Atomic rename
+            Path(tmp_path).rename(output_path)
+
+        except Exception as e:
+            Path(tmp_path).unlink(missing_ok=True)
+            raise RuntimeError(f"Failed to save sample: {e}")

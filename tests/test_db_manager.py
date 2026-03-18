@@ -62,3 +62,43 @@ def test_annotation_key(db):
     assert db.is_annotated("v1", "ava", 5.0, "p2")
     assert db.is_annotated("v1", "ava", 6.0, "p1")
     assert not db.is_annotated("v1", "ava", 7.0, "p1")
+
+
+def test_download_recovery_methods(db):
+    """Test get_stale_downloads, reset_to_pending, etc."""
+    # Insert a stale record
+    with db.write() as cur:
+        cur.execute('''
+            INSERT INTO downloads (video_id, dataset, status, updated_at)
+            VALUES (?, ?, ?, datetime('now', '-3 hours'))
+        ''', ("stale_vid", "ava", "downloading"))
+    
+    # Should find the stale download
+    stale = db.get_stale_downloads("ava", max_age_minutes=120)
+    assert "stale_vid" in stale
+    
+    # Reset it
+    db.reset_to_pending("stale_vid", "ava")
+    assert db.get_attempt_count("stale_vid", "ava") == 0
+    
+    # Now it shouldn't be stale
+    assert "stale_vid" not in db.get_stale_downloads("ava", max_age_minutes=120)
+
+
+def test_annotation_recovery_methods(db):
+    """Test get_stale_annotations, reset_annotation_to_pending, etc."""
+    with db.write() as cur:
+        cur.execute('''
+            INSERT INTO annotations 
+            (video_id, dataset, timestamp_s, person_id, status, updated_at)
+            VALUES (?, ?, ?, ?, ?, datetime('now', '-3 hours'))
+        ''', ("v_ann", "ava", 1.0, "p1", "annotating"))
+    
+    stale = db.get_stale_annotations("ava", max_age_minutes=120)
+    assert len(stale) == 1
+    assert stale[0][0] == "v_ann"
+    
+    db.reset_annotation_to_pending("v_ann", "ava", 1.0, "p1")
+    
+    stale_after = db.get_stale_annotations("ava", max_age_minutes=120)
+    assert len(stale_after) == 0

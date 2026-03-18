@@ -35,7 +35,6 @@ venv.bak/
 *.swp
 *.swo
 *~
-.DS_Store
 Thumbs.db
 
 # Testing
@@ -50,6 +49,9 @@ htmlcov/
 .ipynb_checkpoints
 
 # Project specific
+.claude/
+.env
+.env.local
 data/
 raw_data/
 processed_data/
@@ -69,6 +71,7 @@ results/
 *.pkl
 *.pickle
 *.joblib
+.onnx
 
 # Temporary files
 *.tmp
@@ -77,13 +80,11 @@ results/
 *.bak
 
 # OS
-.DS_Store
 .DS_Store?
 ._*
 .Spotlight-V100
 .Trashes
 ehthumbs.db
-Thumbs.db
 
 # Configuration local overrides
 configs/local/
@@ -107,3 +108,7 @@ configs/experiments/
 .spyderproject/
 .spyproject/
 .webassets-cache
+
+# Experiment tracking
+wandb/
+mlruns/

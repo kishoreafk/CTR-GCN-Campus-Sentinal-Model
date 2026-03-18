@@ -16,12 +16,20 @@ log = logging.getLogger("ava_evaluator")
 
 
 class AVAEvaluator:
-    def __init__(self, config):
+    """
+    AVA-style evaluator: loads best checkpoint, runs through
+    validation set, computes per-class AP and mAP.
+
+    Accepts optional class_registry for class-selective evaluation.
+    """
+
+    def __init__(self, config, class_registry=None):
         self.cfg = config
-        self.reg = ClassRegistry(config.class_config)
+        self.class_registry = class_registry
+        self.reg = class_registry or ClassRegistry(config.class_config)
         self.device = torch.device(config.device)
 
-    def evaluate(self, checkpoint_path: str = None) -> Dict:
+    def evaluate(self, checkpoint_path: str = None, use_tta: bool = False) -> Dict:
         """Run evaluation using best checkpoint."""
         from models.model_factory import build_model
         from data_pipeline.dataloader_factory import create_dataloaders
@@ -57,17 +65,29 @@ class AVAEvaluator:
             except Exception as e:
                 log.warning(f"Could not load EMA: {e}")
 
-        # Data
-        _, val_loader, _ = create_dataloaders(self.cfg)
+        # Data — pass class_registry if available
+        _, val_loader, _ = create_dataloaders(
+            self.cfg, class_registry=self.class_registry)
 
-        # Evaluate
+        # Evaluate — optionally with Test-Time Augmentation
         metrics = MultiLabelMetrics(self.cfg.num_classes, self.reg.class_names)
+
+        if use_tta:
+            from evaluation.tta import TTAEvaluator
+            tta = TTAEvaluator(model, str(self.device))
+            log.info("Using Test-Time Augmentation (4-way)")
 
         with torch.no_grad():
             for batch in val_loader:
                 x = batch["input"].to(self.device, non_blocking=True)
                 y = batch["label"].to(self.device, non_blocking=True)
-                logits = model(x)
+                if use_tta:
+                    probs = tta.predict(x)
+                    # Convert probs back to logits for metrics.update
+                    # (which expects raw logits and applies sigmoid internally)
+                    logits = torch.log(probs / (1 - probs + 1e-8))
+                else:
+                    logits = model(x)
                 metrics.update(logits, y)
 
         result = metrics.compute()

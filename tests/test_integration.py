@@ -120,7 +120,7 @@ def test_mini_pipeline(tmp_path, device):
         }
 
         # Save checkpoint
-        ckpt_mgr.save(epoch, model, optimizer, None, ema, es, all_metrics, cfg)
+        ckpt_mgr.save(model, optimizer, None, ema, es, epoch, epoch, all_metrics, cfg, reg)
 
     # Assertions
     assert epoch_loss > 0, "Loss should be positive"
@@ -129,6 +129,6 @@ def test_mini_pipeline(tmp_path, device):
 
     # Reload checkpoint
     model2 = CTRGCNForAVA(num_classes=reg.num_classes).to(device)
-    loaded_epoch, loaded_metrics = ckpt_mgr.load(
+    loaded_epoch, loaded_step, loaded_metrics = ckpt_mgr.load(
         str(Path(ckpt_dir) / "last.pth"), model2)
     assert loaded_epoch == 1  # last epoch saved

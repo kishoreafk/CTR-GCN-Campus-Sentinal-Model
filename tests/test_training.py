@@ -91,16 +91,59 @@ def test_checkpoint_round_trip(device, tmp_path):
     metrics = {"mAP": 0.42, "val_loss": 0.3}
     cfg = MockConfig()
 
-    ckpt_mgr.save(0, model, optimizer, None, ema, es, metrics, cfg)
+    class MockRegistry:
+        num_classes = 15
+        class_names = ["c" + str(i) for i in range(15)]
+
+    ckpt_mgr.save(model, optimizer, None, ema, es, 0, 100, metrics, cfg, MockRegistry())
 
     # Reload
     model2 = CTRGCNForAVA(num_classes=15).to(device)
-    epoch, loaded_metrics = ckpt_mgr.load(
+    epoch, step, loaded_metrics = ckpt_mgr.load(
         str(tmp_path / "run" / "last.pth"), model2)
 
     assert epoch == 0
+    assert step == 100
     # State should match
     for k in model.state_dict():
         torch.testing.assert_close(
             model.state_dict()[k].cpu(),
             model2.state_dict()[k].cpu())
+
+
+def test_checkpoint_rng_state(device, tmp_path):
+    """Saving and loading checkpoint should restore RNG states."""
+    import random
+    import numpy as np
+
+    class MockConfig:
+        pass
+
+    model = CTRGCNForAVA(num_classes=15).to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+    ckpt_mgr = CheckpointManager(str(tmp_path / "rng_run"))
+
+    # Seed and advance RNG
+    random.seed(42)
+    np.random.seed(42)
+    torch.manual_seed(42)
+    
+    _ = random.random()
+    _ = np.random.rand()
+    _ = torch.rand(1)
+
+    # Save state
+    ckpt_mgr.save(model, optimizer, None, None, None, 1, 50, {}, MockConfig(), None)
+
+    # Advance state further
+    val_py = random.random()
+    val_np = np.random.rand()
+    val_th = torch.rand(1).item()
+
+    # Load state
+    ckpt_mgr.load(str(tmp_path / "rng_run" / "last.pth"), model)
+
+    # Advance state again, it should exactly match the post-save values
+    assert random.random() == val_py
+    assert np.random.rand() == val_np
+    assert torch.rand(1).item() == val_th
